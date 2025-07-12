@@ -29,41 +29,48 @@ auto replaceSsaAssignments(const std::vector<std::string> &prog) {
     return output;
 }
 
-// Collect all defined SSA variables from replaced definitions [[Vn:...]]
-auto collectDefinedVars(const std::vector<std::string> &prog) {
-    std::set<std::string> defs;
-    static const std::regex repDef(R"(%\[\[V(\d+):)");
-    for (const auto &line : prog) {
-        std::smatch m;
-        if (std::regex_search(line, m, repDef))
-            defs.insert(m[1].str());
-    }
-    return defs;
-}
-
 // Replace SSA uses "%n" with "%[[Vn]]" if defined, otherwise wildcard {{.*}}
+// Scope‑safe SSA‑use??
 auto replaceSsaVarUses(const std::vector<std::string> &prog) {
-    auto defs = collectDefinedVars(prog);
     std::vector<std::string> output;
-    static const std::regex usePattern(R"(%(\d+))");
-    for (const auto &line : prog) {
+    std::stack<std::set<std::string>> scopeDefs;
+    scopeDefs.push({});  // global scope
+
+    static const std::regex assignDef(R"(^\s*%\[\[V(\d+):)");
+    static const std::regex usePattern(
+        R"(%\[(\[?V)?(\d+)\]?\])");  // either [[Vn]] or %n
+    static const std::regex rawUse(R"(%(\d+))");
+
+    for (auto &line : prog) {
+        if (line.find('{') != std::string::npos)
+            scopeDefs.push(scopeDefs.top());
+        if (line.find('}') != std::string::npos && scopeDefs.size() > 1)
+            scopeDefs.pop();
+
+        {
+            std::smatch m;
+            if (std::regex_search(line, m, assignDef))
+                scopeDefs.top().insert(m[1].str());
+        }
+
         std::string result;
         size_t last = 0;
-        for (auto it =
-                 std::sregex_iterator(line.begin(), line.end(), usePattern);
+        for (auto it = std::sregex_iterator(line.begin(), line.end(), rawUse);
              it != std::sregex_iterator(); ++it) {
             auto &m = *it;
             result.append(line, last, m.position() - last);
             std::string idx = m[1].str();
-            if (defs.count(idx))
-                result.append("%[[V" + idx + "]]");
+            if (scopeDefs.top().count(idx))
+                result += "%[[V" + idx + "]]";
             else
-                result.append("{{.*}}");
+                result += "{{.*}}";
             last = m.position() + m.length();
         }
         result.append(line, last, std::string::npos);
-        output.push_back(result);
+
+        output.push_back(std::move(result));
     }
+
     return output;
 }
 

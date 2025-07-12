@@ -1,4 +1,4 @@
-Converts [ClangIR](https://github.com/llvm/clangir) SSA Variables to Regex format. I got tired of doing this myself when adding CIR tests. Getting the global definition and replacing with wildcards isn't entirely accurate for scopes, but meh -- this works for small cases.
+Converts [ClangIR](https://github.com/llvm/clangir) SSA Variables to Regex format. I got tired of doing this myself when adding CIR tests. Getting the global definition and replacing with wildcards isn't entirely accurate for scopes (idk?), but meh -- this works for small cases.
 
 ## Sample input (`in.txt`)
 ```
