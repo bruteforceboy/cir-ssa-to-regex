@@ -23,7 +23,7 @@ cir.scope {
       } loc(#loc19)
     } loc(#loc19)
 ```
-## Sample output (out.txt)
+## Sample output (`out.txt`)
 ```
 cir.scope {
       %[[V4:.*]] = cir.alloca !s32i, !cir.ptr<!s32i>, ["i", init] {alignment = 4 : i64}
