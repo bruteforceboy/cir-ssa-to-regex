@@ -30,7 +30,7 @@ auto replaceSsaAssignments(const std::vector<std::string> &prog) {
 }
 
 // Replace SSA uses "%n" with "%[[Vn]]" if defined, otherwise wildcard {{.*}}
-// Scope‑safe SSA‑use??
+// Scope‑safe SSA use??
 auto replaceSsaVarUses(const std::vector<std::string> &prog) {
     std::vector<std::string> output;
     std::stack<std::set<std::string>> scopeDefs;
@@ -75,7 +75,7 @@ auto replaceSsaVarUses(const std::vector<std::string> &prog) {
 }
 
 // Remove CIR location info
-// Truncate at ' loc(' if present
+// Truncate at ` loc(` if present
 auto removeLocationInfo(const std::vector<std::string> &prog) {
     std::vector<std::string> output;
     for (const auto &line : prog) {
