@@ -1,7 +1,7 @@
-#include <deque>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 #include "ssa_to_regex.h"
 
@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    std::deque<std::string> prog;
+    std::vector<std::string> prog;
     std::string line;
     while (std::getline(infile, line))
         prog.push_back(line);

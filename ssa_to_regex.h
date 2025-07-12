@@ -1,12 +1,12 @@
-#include <deque>
 #include <regex>
 #include <set>
 #include <string>
+#include <vector>
 
 // Replace SSA assignment lines like "%0 = ..." with regex named group for the
 // variable index
-auto replaceSsaAssignments(const std::deque<std::string> &prog) {
-    std::deque<std::string> output;
+auto replaceSsaAssignments(const std::vector<std::string> &prog) {
+    std::vector<std::string> output;
     static const std::regex assignPattern(R"(^\s*%(\d+)\s*=)");
     for (const auto &line : prog) {
         std::smatch match;
@@ -30,7 +30,7 @@ auto replaceSsaAssignments(const std::deque<std::string> &prog) {
 }
 
 // Collect all defined SSA variables from replaced definitions [[Vn:...]]
-auto collectDefinedVars(const std::deque<std::string> &prog) {
+auto collectDefinedVars(const std::vector<std::string> &prog) {
     std::set<std::string> defs;
     static const std::regex repDef(R"(%\[\[V(\d+):)");
     for (const auto &line : prog) {
@@ -42,9 +42,9 @@ auto collectDefinedVars(const std::deque<std::string> &prog) {
 }
 
 // Replace SSA uses "%n" with "%[[Vn]]" if defined, otherwise wildcard {{.*}}
-auto replaceSsaVarUses(const std::deque<std::string> &prog) {
+auto replaceSsaVarUses(const std::vector<std::string> &prog) {
     auto defs = collectDefinedVars(prog);
-    std::deque<std::string> output;
+    std::vector<std::string> output;
     static const std::regex usePattern(R"(%(\d+))");
     for (const auto &line : prog) {
         std::string result;
@@ -67,12 +67,10 @@ auto replaceSsaVarUses(const std::deque<std::string> &prog) {
     return output;
 }
 
-auto replaceBlocks(const std::deque<std::string> &prog) { return prog; }
-
 // Remove CIR location info
 // Truncate at ' loc(' if present
-auto removeLocationInfo(const std::deque<std::string> &prog) {
-    std::deque<std::string> output;
+auto removeLocationInfo(const std::vector<std::string> &prog) {
+    std::vector<std::string> output;
     for (const auto &line : prog) {
         auto pos = line.find(" loc(");
         output.push_back(pos == std::string::npos ? line : line.substr(0, pos));
@@ -81,8 +79,8 @@ auto removeLocationInfo(const std::deque<std::string> &prog) {
 }
 
 // Trim trailing spaces
-auto removeTrailingSpaces(const std::deque<std::string> &prog) {
-    std::deque<std::string> output;
+auto removeTrailingSpaces(const std::vector<std::string> &prog) {
+    std::vector<std::string> output;
     for (const auto &line : prog) {
         size_t end = line.find_last_not_of(' ');
         output.push_back(end == std::string::npos ? std::string()
@@ -91,10 +89,9 @@ auto removeTrailingSpaces(const std::deque<std::string> &prog) {
     return output;
 }
 
-void ssaToRegex(std::deque<std::string> &prog) {
+void ssaToRegex(std::vector<std::string> &prog) {
     prog = replaceSsaAssignments(prog);
     prog = replaceSsaVarUses(prog);
-    prog = replaceBlocks(prog);
     prog = removeLocationInfo(prog);  // optional?
     prog = removeTrailingSpaces(prog);
 }
